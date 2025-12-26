@@ -1,0 +1,126 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block breadcrum_name %}
+  <a href="{% url 'index' %}">Add Employees</a>
+{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h5>Add Employee</h5>
+    </div>
+
+    <div class="card-body">
+      <form id="employeeForm">
+        {% csrf_token %}
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" name="name" class="form-control" placeholder="Enter name" />
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" placeholder="Enter email" />
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input type="password" name="password" class="form-control" placeholder="Enter password" />
+            </div>
+          </div>
+
+          <div class="col-md-12">
+            <button type="submit" class="btn btn-primary mt-2">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <table id="usersTable" class="display">
+    <thead>
+      <tr>
+        <th style="display:none">ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Created At</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    $('#employeeForm').on('submit', function (e) {
+      e.preventDefault()
+      $.ajax({
+        type: 'POST',
+        url: "{% url 'save_employee' %}",
+        data: {
+          name: $('input[name="name"]').val(),
+          email: $('input[name="email"]').val(),
+          password: $('input[name="password"]').val(),
+          csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+        },
+        success: function (response) {
+          Swal.fire({
+            title: 'Success!',
+            text: response.message,
+            icon: 'success',
+            confirmButtonText: 'OK'
+          })
+    
+          $('#employeeForm')[0].reset()
+        },
+        error: function (xhr) {
+          let errMsg = 'Something went wrong!'
+          if (xhr.responseJSON && xhr.responseJSON.message) {
+            errMsg = xhr.responseJSON.message
+          }
+          Swal.fire({
+            title: 'Error!',
+            text: errMsg,
+            icon: 'error',
+            confirmButtonText: 'OK'
+          })
+        }
+      })
+    })
+    
+    $(document).ready(function () {
+      $('#usersTable').DataTable({
+        ajax: {
+          url: "{% url 'get_users' %}"
+        },
+        order: [[0, 'desc']],
+        columns: [
+          { data: 'id', visible: false },
+          { data: 'name' },
+          { data: 'email' },
+          { data: 'create_at' },
+          {
+            data: 'id',
+            orderable: false,
+            searchable: false,
+            render: function (id, type, row) {
+              return '<button class="btn btn-sm btn-warning editBtn" data-id="' + id + '">Edit</button>' + ' <button class="btn btn-sm btn-danger deleteBtn" data-id="' + id + '">Delete</button>'
+            }
+          }
+        ]
+      })
+    
+      $(document).on('click', '.editBtn', function () {
+        let id = $(this).data('id')
+        alert(id)
+      })
+    })
+  </script>
+{% endblock %}

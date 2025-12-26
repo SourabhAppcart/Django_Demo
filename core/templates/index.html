@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!-- [Head] start -->
+  {% load static %}
+  <head>
+    <title>Home | Mantis Bootstrap 5 Admin Template</title>
+    <!-- [Meta] -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="Mantis is made using Bootstrap 5 design framework. Download the free admin template & use it for your project." />
+    <meta name="keywords" content="Mantis, Dashboard UI Kit, Bootstrap 5, Admin Template, Admin Dashboard, CRM, CMS, Bootstrap Admin Template" />
+    <meta name="author" content="CodedThemes" />
+
+    <!-- [Favicon] icon -->
+    <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/x-icon" /> <!-- [Google Font] Family -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" id="main-font-link" />
+    <!-- [Tabler Icons] https://tablericons.com -->
+    <link rel="stylesheet" href="{% static 'fonts/tabler-icons.min.css' %}" />
+    <!-- [Feather Icons] https://feathericons.com -->
+    <link rel="stylesheet" href="{% static 'fonts/feather.css' %}" />
+    <!-- [Font Awesome Icons] https://fontawesome.com/icons -->
+    <link rel="stylesheet" href="{% static 'fonts/fontawesome.css' %}" />
+    <!-- [Material Icons] https://fonts.google.com/icons -->
+    <link rel="stylesheet" href="{% static 'fonts/material.css' %}" />
+    <!-- [Template CSS Files] -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" id="main-style-link" />
+    <link rel="stylesheet" href="{% static 'css/style-preset.css' %}" />
+
+
+    <!-- Include jQuery and DataTables CSS/JS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <!-- Sweet Alert Links -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <!-- [Head] end -->
+  <!-- [Body] Start -->
+
+  <body data-pc-preset="preset-1" data-pc-direction="ltr" data-pc-theme="light">
+    {% include 'includes/header.html' %}
+
+    <div class="pc-container">
+      <div class="pc-content">
+        <div class="page-header">
+          <div class="page-block">
+            <div class="row align-items-center">
+              <div class="col-md-12">
+                <div class="page-header-title"></div>
+                <ul class="breadcrumb">
+                  <li class="breadcrumb-item">
+                    {% comment %}name="index"{% endcomment %}
+
+                    {% block breadcrum_name %}
+
+                    {% endblock %}
+                  </li>
+                  <li class="breadcrumb-item" aria-current="page">Home</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          {% block content %}
+
+          {% endblock %}
+        </div>
+      </div>
+    </div>
+
+    {% include 'includes/footer.html' %}
+
+    <!-- [Page Specific JS] start -->
+
+    {% comment %} <script src="{% static 'js/plugins/apexcharts.min.js' %}"></script> {% endcomment %}
+    {% comment %} <script src="{% static 'js/pages/dashboard-default.js' %}"></script> {% endcomment %}
+    <!-- [Page Specific JS] end -->
+    <!-- Required Js -->
+     
+    <script src="{% static 'js/plugins/popper.min.js' %}"></script>
+    <script src="{% static 'js/plugins/simplebar.min.js' %}"></script>
+    <script src="{% static 'js/plugins/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/fonts/custom-font.js' %}"></script>
+    {% comment %} <script src="{% static 'js/pcoded.js' %}"></script> {% endcomment %}
+    <script src="{% static 'js/plugins/feather.min.js' %}"></script>
+    {% comment %} <script>
+      layout_change('light')
+    </script>
+
+    <script>
+      change_box_container('false')
+    </script>
+
+    <script>
+      layout_rtl_change('false')
+    </script>
+
+    <script>
+      preset_change('preset-1')
+    </script>
+
+    <script>
+      font_change('Public-Sans')
+    </script> {% endcomment %}
+  </body>
+  <!-- [Body] end -->
+</html>
