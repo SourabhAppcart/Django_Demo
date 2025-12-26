@@ -66,11 +66,30 @@ def edit_user(request, id):
 
 def update_employee(request):
     if request.method == "POST":
-        user = Users.objects.get(id=request.POST["id"])
-        user.name = request.POST["name"]
-        user.email = request.POST["email"]
-        user.save()
-        return JsonResponse({"status": "success"})
+        user_id = request.POST.get("id")
+        new_email = request.POST.get("email")
+        new_name = request.POST.get("name")
+
+        # Check if the email is used by another user (excluding current user)
+        if Users.objects.filter(email=new_email).exclude(id=user_id).exists():
+            return JsonResponse(
+                {"status": "error", "message": "Email already exists"}, status=400
+            )
+
+        try:
+            user = Users.objects.get(id=user_id)
+            user.name = new_name
+            user.email = new_email
+            user.save()
+            return JsonResponse({"status": "success"})
+        except Users.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "message": "User not found"}, status=404
+            )
+    else:
+        return JsonResponse(
+            {"status": "error", "message": "Invalid method"}, status=405
+        )
 
 
 def delete(request, id):

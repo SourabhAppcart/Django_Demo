@@ -183,6 +183,16 @@
             $('#usersTable').DataTable().ajax.reload()
     
             Swal.fire('Updated!', 'Employee updated successfully', 'success')
+          },
+          error: function (xhr) {
+            $('#editEmployeeModal').modal('hide')
+            let errMsg = 'An error occurred. Please try again.'
+    
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errMsg = xhr.responseJSON.message
+            }
+    
+            Swal.fire('Error', errMsg, 'error')
           }
         })
       })
