@@ -45,6 +45,40 @@
     </div>
   </div>
 
+  <!-- Edit Employee Modal -->
+  <div class="modal fade" id="editEmployeeModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="editEmployeeForm">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Employee</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <input type="hidden" name="id" id="edit_id" />
+
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" id="edit_name" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" id="edit_email" class="form-control" />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <table id="usersTable" class="display">
     <thead>
       <tr>
@@ -119,7 +153,56 @@
     
       $(document).on('click', '.editBtn', function () {
         let id = $(this).data('id')
-        alert(id)
+        $.ajax({
+          url: '/employee/get/' + id + '/',
+          type: 'GET',
+          success: function (response) {
+            $('#edit_id').val(response.id)
+            $('#edit_name').val(response.name)
+            $('#edit_email').val(response.email)
+    
+            $('#editEmployeeModal').modal('show')
+          }
+        })
+      })
+    
+      $('#editEmployeeForm').on('submit', function (e) {
+        e.preventDefault()
+    
+        $.ajax({
+          type: 'POST',
+          url: "{% url 'update_employee' %}",
+          data: {
+            id: $('#edit_id').val(),
+            name: $('#edit_name').val(),
+            email: $('#edit_email').val(),
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+          },
+          success: function () {
+            $('#editEmployeeModal').modal('hide')
+            $('#usersTable').DataTable().ajax.reload()
+    
+            Swal.fire('Updated!', 'Employee updated successfully', 'success')
+          }
+        })
+      })
+    
+      $(document).on('click', '.deleteBtn', function () {
+        let id = $(this).data('id')
+        $.ajax({
+          url: '/employee/delete/' + id + '/',
+          type: 'DELETE',
+          headers: {
+            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+          },
+          success: function (response) {
+            $('#usersTable').DataTable().ajax.reload()
+            Swal.fire('Deleted', 'Employee Deleted successfully', 'success')
+          },
+          error: function (xhr) {
+            Swal.fire('Error', 'Delete failed: ' + xhr.responseJSON?.message || 'Unknown error', 'error')
+          }
+        })
       })
     })
   </script>

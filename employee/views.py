@@ -51,3 +51,36 @@ def get_users(request):
             u["create_at"] = u["create_at"].strftime("%Y-%m-%d %H:%M")
 
     return JsonResponse({"data": users_list})
+
+
+def edit_user(request, id):
+    user = Users.objects.get(id=id)
+    return JsonResponse(
+        {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+        }
+    )
+
+
+def update_employee(request):
+    if request.method == "POST":
+        user = Users.objects.get(id=request.POST["id"])
+        user.name = request.POST["name"]
+        user.email = request.POST["email"]
+        user.save()
+        return JsonResponse({"status": "success"})
+
+
+def delete(request, id):
+    if request.method == "DELETE":
+        try:
+            user = Users.objects.get(id=id)
+            user.delete()
+            return JsonResponse({"status": "success"})
+        except Users.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "message": "User not found"}, status=404
+            )
+    return JsonResponse({"status": "error", "message": "Invalid method"}, status=400)
