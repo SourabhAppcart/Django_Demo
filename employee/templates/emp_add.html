@@ -36,6 +36,18 @@
               <input type="password" name="password" class="form-control" placeholder="Enter password" />
             </div>
           </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Mobile No</label>
+              <input type="tel" name="mobile_no" class="form-control" />
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="mb-3">
+              <label for="address" class="form-label">Address</label>
+              <textarea class="form-control" id="address" rows="3" name="address"></textarea>
+            </div>
+          </div>
 
           <div class="col-md-12">
             <button type="submit" class="btn btn-primary mt-2">Submit</button>
@@ -79,6 +91,14 @@
     </div>
   </div>
 
+  <div class="row">
+    {% comment %}filter Div{% endcomment %}
+    <div class="mb-3 col-6">
+      <label class="form-label">Filter By Name</label>
+      <input type="text" id="name_filter" class="form-control" />
+    </div>
+  </div>
+
   <table id="usersTable" class="display">
     <thead>
       <tr>
@@ -86,6 +106,7 @@
         <th>Name</th>
         <th>Email</th>
         <th>Created At</th>
+        <th>Mobile No</th>
         <th>Action</th>
       </tr>
     </thead>
@@ -102,6 +123,9 @@
           name: $('input[name="name"]').val(),
           email: $('input[name="email"]').val(),
           password: $('input[name="password"]').val(),
+          mobile_no: $('input[name="mobile_no"]').val(),
+          address: $('#address').val(),
+    
           csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
         },
         success: function (response) {
@@ -132,7 +156,10 @@
     $(document).ready(function () {
       $('#usersTable').DataTable({
         ajax: {
-          url: "{% url 'get_users' %}"
+          url: "{% url 'get_users' %}",
+          data: function (d) {
+            d.name = $('#name_filter').val() // send filter value
+          }
         },
         order: [[0, 'desc']],
         columns: [
@@ -140,6 +167,7 @@
           { data: 'name' },
           { data: 'email' },
           { data: 'create_at' },
+          { data: 'mobile_no' },
           {
             data: 'id',
             orderable: false,
@@ -149,6 +177,10 @@
             }
           }
         ]
+      })
+    
+      $('#name_filter').on('keyup change', function () {
+        $('#usersTable').DataTable().ajax.reload()
       })
     
       $(document).on('click', '.editBtn', function () {

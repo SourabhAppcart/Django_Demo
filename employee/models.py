@@ -16,4 +16,16 @@ class Users(models.Model):
 
     class Meta:
         db_table = "users"
-     
+
+
+class UsersDetails(models.Model):
+    address = models.TextField(null=True, blank=True)
+
+    mobile_no = models.CharField(max_length=20)
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.email
+
+    class Meta:
+        db_table = "users_details"
