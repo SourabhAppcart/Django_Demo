@@ -26,6 +26,23 @@
             <span class="pc-mtext">Add Employee</span>
           </a>
         </li>
+        {% if perms.sessions.add_session %}
+          <li class="pc-item">
+            <a href="{% url 'addUser' %}" class="pc-link">
+              <span class="pc-micon"><i class="ti ti-user-plus"></i></span>
+              <span class="pc-mtext">Add User</span>
+            </a>
+          </li>
+        {% endif %}
+
+        {% if perms.auth.add_group %}
+          <li class="pc-item">
+            <a href="{% url 'createRoles' %}" class="pc-link">
+              <span class="pc-micon"><i class="ti ti-lock"></i></span>
+              <span class="pc-mtext">Create Role</span>
+            </a>
+          </li>
+        {% endif %}
       </ul>
     </div>
   </div>

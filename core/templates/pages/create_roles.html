@@ -1,0 +1,203 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block breadcrum_name %}
+  <a href="{% url 'index' %}">Create Roles</a>
+{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h5>Create Roles</h5>
+    </div>
+
+    <div class="card-body">
+      <form id="addRolesForm">
+        {% csrf_token %}
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">ROLE NAME</label>
+              <input type="text" name="role_name" class="form-control" required />
+            </div>
+          </div>
+
+          <div class="col-md-12">
+            <label class="form-label fw-bold">Assign Permissions</label>
+            <div class="row">
+              {% for perm in permissions %}
+                <div class="col-md-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="permissions[]" value="{{ perm.id }}" />
+                    <label class="form-check-label">{{ perm.name }}</label>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-md-12">
+            <button type="submit" class="btn btn-primary mt-3">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <div class="modal fade" id="editRoleModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Role</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="editRoleForm">
+          {% csrf_token %}
+          <input type="hidden" id="edit_role_id" />
+
+          <div class="mb-3">
+            <label class="form-label">ROLE NAME</label>
+            <input type="text" id="edit_role_name" class="form-control" required />
+          </div>
+
+          <div class="row" id="editPermissionsBox">
+            <!-- permissions loaded here -->
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="updateRoleBtn">Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+  <table id="RoleTable" class="display">
+    <thead>
+      <tr>
+        <th>ID</th> <!-- hidden -->
+        <th>Role Name</th>
+
+        <th>Action</th>
+      </tr>
+    </thead>
+  </table>
+
+  <script>
+    $('#addRolesForm').on('submit', function (e) {
+      e.preventDefault()
+    
+      let permissions = []
+      $('input[name="permissions[]"]:checked').each(function () {
+        permissions.push($(this).val())
+      })
+    
+      $.ajax({
+        type: 'POST',
+        url: "{% url 'saveRoles' %}",
+        data: {
+          role_name: $('input[name="role_name"]').val(),
+          permissions: permissions,
+          csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function (response) {
+          alert(response.message)
+          $('#addRolesForm')[0].reset()
+        }
+      })
+    })
+
+$('#RoleTable').DataTable({
+  ajax: {
+    url: "{% url 'getRolesTable' %}",
+    dataSrc: ''
+  },
+  columns: [
+    { data: 1, visible: false }, // ID (hidden)
+    { data: 0 },                 // Role Name
+    {
+      data: null,
+      orderable: false,
+      render: function (data, type, row) {
+        let id = row[1];
+
+        return `
+          <button class="btn btn-sm btn-warning editBtn" data-id="${id}">
+            Edit
+          </button>
+          <button class="btn btn-sm btn-danger deleteBtn" data-id="${id}">
+            Delete
+          </button>
+        `;
+      }
+    }
+  ]
+});
+
+
+$('#RoleTable').on('click', '.editBtn', function () {
+  let roleId = $(this).data('id');
+
+  $.get(`/roles/details/${roleId}/`, function (res) {
+    $('#edit_role_id').val(res.id);
+    $('#edit_role_name').val(res.name);
+
+    let html = '';
+
+    res.all_permissions.forEach(function (perm) {
+      let checked = res.assigned_permissions.includes(perm.id) ? 'checked' : '';
+
+      html += `
+        <div class="col-md-4">
+          <div class="form-check">
+            <input class="form-check-input editPerm" type="checkbox"
+              value="${perm.id}" ${checked}>
+            <label class="form-check-label">${perm.name}</label>
+          </div>
+        </div>
+      `;
+    });
+
+    $('#editPermissionsBox').html(html);
+
+    new bootstrap.Modal(document.getElementById('editRoleModal')).show();
+  });
+});
+
+
+$('#updateRoleBtn').on('click', function () {
+  let permissions = [];
+
+  $('.editPerm:checked').each(function () {
+    permissions.push($(this).val());
+  });
+
+  $.ajax({
+    type: 'POST',
+    url: "{% url 'updateRole' %}",
+    data: {
+      role_id: $('#edit_role_id').val(),
+      role_name: $('#edit_role_name').val(),
+      permissions: permissions,
+      csrfmiddlewaretoken: '{{ csrf_token }}'
+    },
+    success: function (res) {
+      alert(res.message);
+      $('#editRoleModal').modal('hide');
+      $('#RoleTable').DataTable().ajax.reload(null, false);
+    }
+  });
+});
+
+
+
+  </script>
+{% endblock %}

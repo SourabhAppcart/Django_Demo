@@ -42,13 +42,41 @@
               <input type="password" name="password" class="form-control" placeholder="Enter password" />
             </div>
           </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Role</label>
+              <select name="group" id="group" class="form-control">
+                <option value=""></option>
+              </select>
+            </div>
+          </div>
 
           <div class="col-md-12">
-            <button type="submit" class="btn btn-primary mt-2">Submit</button>
+            {% comment %} <button type="submit" class="btn btn-primary mt-2">Submit</button> {% endcomment %}
+            <button type="submit" class="btn btn-primary mt-2" id="submitBtn">Submit</button>
+            <button type="button" id="updateBtn" class="btn btn-info mt-2">Update</button>
+
           </div>
         </div>
       </form>
     </div>
+  </div>
+
+
+  <div>
+ <table id="usersTableRoles" class="display">
+  <thead>
+    <tr>
+      <th>ID</th>        <!-- hidden -->
+      <th>Username</th>
+      <th>First Name</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+</table>
+
   </div>
 
   <script>
@@ -62,6 +90,7 @@
           email: $('input[name="email"]').val(),
           password: $('input[name="password"]').val(),
           username: $('input[name="username"]').val(),
+          group: $('#group').val(),
     
           csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
         },
@@ -72,7 +101,7 @@
             icon: 'success',
             confirmButtonText: 'OK'
           })
-
+    
           $('#addUserForm')[0].reset()
         },
         error: function (xhr) {
@@ -89,5 +118,155 @@
         }
       })
     })
+    
+    // Fetch roles and populate the dropdown
+    {% comment %} $(document).ready(function () {
+      $.ajax({
+        type: 'GET',
+        url: "{% url 'getRoles' %}",
+        success: function (response) {
+          const select = $('#group')
+          select.empty()  
+          select.append('<option value="">Select Role</option>')
+          response.forEach(function (role) {
+            select.append('<option value="' + role + '">' + role + '</option>')
+          })
+        },
+        error: function (xhr) {
+          console.error('Error fetching roles:', xhr)
+        }
+      })
+    }) {% endcomment %}
+
+    $(document).ready(function () {
+  $('#updateBtn').hide()
+  $('#submitBtn').show()
+
+//   $.get("{% url 'getRoles' %}", function (data) {
+//    let options = '<option value="">Select Role</option>'
+//     data.forEach(function (role) {
+//       options += `<option value="${role}">${role}</option>`
+//     })
+//     $('#group').html(options)
+//   })
+
+      $.ajax({
+        type: 'GET',
+        url: "{% url 'getRoles' %}",
+        success: function (data) {
+          let options = '<option value="">Select Role</option>'
+          data.forEach(function (role) {
+            options += `<option value="${role}">${role}</option>`
+          })
+          $('#group').html(options)
+        }
+      })
+
+
+     $('#usersTableRoles').DataTable({
+  ajax: {
+    url: "{% url 'getUsersRoles' %}",
+    type: "GET"
+  },
+  order: [[0, 'desc']],
+  columns: [
+    { data: 'id', visible: false },
+    { data: 'username' },
+    { data: 'first_name' },
+    { data: 'email' },
+    { data: 'groups' },   // 👈 FIXED
+    {
+      data: 'id',
+      orderable: false,
+      searchable: false,
+      render: function (id) {
+        return `
+          <button class="btn btn-sm btn-warning editBtn" data-id="${id}">Edit</button>
+          <button class="btn btn-sm btn-danger deleteBtn" data-id="${id}">Delete</button>
+        `
+      }
+    }
+  ]
+})
+
+//editBtn
+    $('#usersTableRoles').on('click', '.editBtn', function () {
+  $('#updateBtn').show()
+  $('#submitBtn').hide()
+  const userId = $(this).data('id')
+
+  $.ajax({
+    url: `/edit-users/${userId}/`,   // 👈 match your URL
+    type: 'GET',
+    success: function (response) {
+      if (response.status === 'success') {
+        const user = response.data
+
+        // fill form fields
+        $('input[name="first_name"]').val(user.first_name)
+        $('input[name="username"]').val(user.username)
+        $('input[name="email"]').val(user.email)
+
+        // password NOT fetched (security)
+        $('input[name="password"]').val('')
+
+        // set role (single role case)
+        if (user.groups.length > 0) {
+          $('#group').val(user.groups[0])
+        }
+
+        // store user id for update
+        $('#addUserForm').attr('data-user-id', user.id)
+      }
+    },
+    error: function () {
+      Swal.fire('Error', 'Unable to fetch user data', 'error')
+    }
+  })
+})
+
+$('#updateBtn').on('click', function () {
+  const userId = $('#addUserForm').attr('data-user-id')
+
+  if (!userId) {
+    Swal.fire('Error', 'No user selected for update', 'error')
+    return
+  }
+
+  $.ajax({
+    type: 'POST',
+    url: `/update-users/${userId}/`,
+    data: {
+      first_name: $('input[name="first_name"]').val(),
+      username: $('input[name="username"]').val(),
+      email: $('input[name="email"]').val(),
+      password: $('input[name="password"]').val(),
+      group: $('#group').val(),
+      csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+    },
+    success: function (response) {
+      Swal.fire('Success', response.message, 'success')
+
+      // reset form
+      $('#addUserForm')[0].reset()
+      $('#addUserForm').removeAttr('data-user-id')
+
+      // 🔁 toggle back
+      $('#updateBtn').hide()
+      $('#submitBtn').show()
+
+      // reload table
+      $('#usersTableRoles').DataTable().ajax.reload()
+    },
+    error: function (xhr) {
+      Swal.fire('Error', xhr.responseJSON.message, 'error')
+    }
+  })
+})
+
+
+
+
+})
   </script>
 {% endblock %}
